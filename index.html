@@ -44,7 +44,7 @@
 </head>
 <body>
     <h1>User Registration</h1>
-    <form id="userForm" action="http://localhost:5157/api/v1/users" method="POST">
+    <form id="userForm">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         
@@ -56,5 +56,40 @@
         
         <button type="submit">Submit</button>
     </form>
+
+    <script>
+        document.getElementById("userForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); 
+
+            const name = document.getElementById("name").value;
+            const mail = document.getElementById("mail").value;
+            const cityState = document.getElementById("citystate").value;
+
+            const userDto = {
+                name: name,
+                mail: mail,
+                citystate: cityState
+            };
+
+            try {
+                const response = await fetch("http://localhost/api/v1/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(userDto)
+                });
+
+                if (response.ok) {
+                    alert("User registered successfully!");
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to register user: ${errorData.message || response.statusText}`);
+                }
+            } catch (error) {
+                alert(`An error occurred: ${error.message}`);
+            }
+        });
+    </script>
 </body>
 </html>
