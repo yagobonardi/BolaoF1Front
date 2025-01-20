@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Prediction Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, black, red);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        select, button {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: red;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <form id="f1-form">
+            <label for="pole">Pole Position</label>
+            <select id="pole" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+
+            <label for="first">1st Place</label>
+            <select id="first" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+
+            <label for="second">2nd Place</label>
+            <select id="second" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+
+            <label for="third">3rd Place</label>
+            <select id="third" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+
+            <label for="fastest-lap">Fastest Lap</label>
+            <select id="fastest-lap" required>
+                <option value="" disabled selected>Loading...</option>
+            </select>
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
+
+    <script>
+        const dropdowns = ["pole", "first", "second", "third", "fastest-lap"];
+        const apiURL = "http://localhost:5157/api/v1/drivers"; // URL da API de pilotos
+
+        // Função para carregar pilotos
+        async function loadDrivers() {
+            try {
+                const response = await fetch(apiURL);
+                console.log(response);
+                if (!response.ok) throw new Error("Failed to fetch drivers");
+                const drivers = await response.json();
+
+                dropdowns.forEach((id) => {
+                    const dropdown = document.getElementById(id);
+                    dropdown.innerHTML = '<option value="" disabled selected>Select a driver</option>'; // Reset dropdown
+                    drivers.forEach((driver) => {
+                        const option = document.createElement("option");
+                        option.value = driver.id; // Assumindo que a API retorna um `id`
+                        option.textContent = driver.name; // Assumindo que a API retorna um `name`
+                        dropdown.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                alert("Error loading drivers: " + error.message);
+                dropdowns.forEach((id) => {
+                    document.getElementById(id).innerHTML = '<option value="" disabled>Error loading</option>';
+                });
+            }
+        }
+
+        // Função para filtrar opções já selecionadas
+        function filterOptions() {
+            const selected = dropdowns.map((id) => document.getElementById(id).value);
+            dropdowns.forEach((id) => {
+                const dropdown = document.getElementById(id);
+                Array.from(dropdown.options).forEach((option) => {
+                    option.disabled = selected.includes(option.value) && option.value !== "";
+                });
+            });
+        }
+
+        // Adicionar evento de filtro nos dropdowns
+        dropdowns.forEach((id) => {
+            document.getElementById(id).addEventListener("change", filterOptions);
+        });
+
+        // Enviar dados para a API
+        document.getElementById("f1-form").addEventListener("submit", (event) => {
+            event.preventDefault();
+            const data = {
+                pole: document.getElementById("pole").value,
+                first: document.getElementById("first").value,
+                second: document.getElementById("second").value,
+                third: document.getElementById("third").value,
+                fastestLap: document.getElementById("fastest-lap").value,
+            };
+
+            fetch("https://example.com/api/save", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            })
+                .then((response) => {
+                    if (!response.ok) throw new Error("Failed to save data");
+                    return response.json();
+                })
+                .then((result) => alert("Data saved successfully!"))
+                .catch((error) => alert("An error occurred: " + error.message));
+        });
+
+        // Carregar pilotos ao iniciar
+        loadDrivers();
+    </script>
+</body>
+</html>
